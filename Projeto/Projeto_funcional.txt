@@ -35,16 +35,23 @@ CREATE TABLE email (
 	conteudo clob NOT NULL
 );
 
-CREATE TABLE carrinho (
-	codigo varchar2(10) PRIMARY KEY,
-	constraint carrinho_codigo FOREIGN KEY (codigo) REFERENCES cliente(codigo)
-	CONSTRAINT fk_cupom FOREIGN KEY (codigo_cupom) REFERENCES cupom_de_desc(codigo)
+CREATE TABLE categoria (
+	nome varchar2(15) NOT NULL,
+	codigo varchar2(11) PRIMARY KEY
 );
 
 CREATE TABLE cupom_de_desc (
-	codigo varchar2(10) PRIMARY KEY,
-	desconto number NOT NULL
+	codigo varchar2(11) PRIMARY KEY,
+	categoria_cupom varchar2(11),
+	desconto number NOT NULL,
 	CONSTRAINT fk_categoria FOREIGN KEY (categoria_cupom) REFERENCES categoria(codigo)
+);
+
+CREATE TABLE carrinho (
+	codigo_cliente varchar2(10) PRIMARY KEY,
+	codigo_cupom varchar2(10) NOT NULL,
+	constraint carrinho_codigo FOREIGN KEY (codigo_cliente) REFERENCES cliente(codigo),
+	CONSTRAINT fk_cupom FOREIGN KEY (codigo_cupom) REFERENCES cupom_de_desc(codigo)
 );
 
 CREATE TABLE historico (
@@ -67,7 +74,7 @@ CREATE TABLE indica (
 CREATE TABLE recebe (
 	clicou_no_conteudo char(1) NOT NULL,
 	abriu char(1) NOT NULL,
-	cod_cliente char(10) NOT NULL,
+	cod_cliente varchar2(10) NOT NULL,
 	cod_email varchar2(10) NOT NULL,
 	PRIMARY KEY (cod_cliente, cod_email),
 	CONSTRAINT recebe_cliente FOREIGN KEY (cod_cliente) REFERENCES cliente(codigo),
@@ -102,16 +109,27 @@ CREATE TABLE ordem_de_compra(
 	PRIMARY KEY (id_ordem_compra)
 );
 
-CREATE TABLE endereco (
+CREATE TABLE endereco_transportadora (
 	id_endereco integer NOT NULL,
-	id_ordem_compra integer NOT NULL,
 	id_transportadora integer NOT NULL,
 	cidade VARCHAR2(20) NOT NULL,
 	bairro VARCHAR2(20) NOT NULL,
 	numero integer NOT NULL,
 	cep integer NOT NULL,
 	rua varchar2(20) NOT NULL,
-	PRIMARY KEY (ID_ENDERECO),
+	PRIMARY KEY (id_endereco),
+	CONSTRAINT fk_transportadora_id FOREIGN KEY (id_transportadora) REFERENCES ordem_de_compra(id_ordem_compra)
+);
+
+CREATE TABLE endereco_ordem_compra (
+	id_endereco integer NOT NULL,
+	id_ordem_compra integer NOT NULL,
+	cidade VARCHAR2(20) NOT NULL,
+	bairro VARCHAR2(20) NOT NULL,
+	numero integer NOT NULL,
+	cep integer NOT NULL,
+	rua varchar2(20) NOT NULL,
+	PRIMARY KEY (id_endereco),
 	CONSTRAINT fk_ordem_compra FOREIGN KEY (id_ordem_compra) REFERENCES ordem_de_compra(id_ordem_compra)
 );
 
@@ -122,7 +140,7 @@ CREATE TABLE transportadora (
 	email varchar2(20) NOT NULL,
 	telefone varchar2(20) NOT NULL,
 	site varchar2(20) NOT NULL,
-	CONSTRAINT fk_endereco FOREIGN KEY (id_endereco) REFERENCES endereco(id_endereco)
+	CONSTRAINT fk_endereco FOREIGN KEY (id_endereco) REFERENCES endereco_transportadora(id_endereco)
 );
 
 CREATE TABLE transporta (
@@ -135,8 +153,8 @@ CREATE TABLE transporta (
 
 
 ALTER TABLE esta_associado ADD CONSTRAINT fk_ordem_compra_associado FOREIGN KEY (id_ordem_compra) REFERENCES ordem_de_compra(id_ordem_compra);
-ALTER TABLE ordem_de_compra ADD CONSTRAINT fk_endereco_ordem FOREIGN KEY (id_endereco) REFERENCES endereco(id_endereco);
-ALTER TABLE endereco ADD CONSTRAINT fk_transportadora FOREIGN KEY (id_transportadora) REFERENCES transportadora(id_transportadora);
+ALTER TABLE ordem_de_compra ADD CONSTRAINT fk_endereco_ordem FOREIGN KEY (id_endereco) REFERENCES endereco_ordem_compra(id_endereco);
+ALTER TABLE endereco_transportadora ADD CONSTRAINT fk_transportadora FOREIGN KEY (id_transportadora) REFERENCES transportadora(id_transportadora);
 
 
 CREATE TABLE fornecedor (
@@ -160,12 +178,12 @@ CREATE TABLE endereco_fornecedor (
 
 CREATE TABLE centro_de_distribuicao (
 	nome varchar2(15) NOT NULL,
-	codigo char(11) PRIMARY KEY
+	codigo varchar2(11) PRIMARY KEY
 );
 
 
 CREATE TABLE endereco_centro_de_distribuicao (
-	codigo_centro char(11) PRIMARY KEY,
+	codigo_centro varchar2(11) PRIMARY KEY,
 	cep varchar2(8) NOT NULL,
 	estado char(2) NOT NULL,
 	cidade varchar2(15) NOT NULL,
@@ -175,41 +193,35 @@ CREATE TABLE endereco_centro_de_distribuicao (
 	CONSTRAINT fk_codigo_centro FOREIGN KEY (codigo_centro) REFERENCES centro_de_distribuicao(codigo)
 );
 
-
-
-CREATE TABLE categoria (
-	nome varchar2(15) NOT NULL,
-	codigo char(11) PRIMARY KEY
-);
-
 CREATE TABLE produto (
-	cod_categoria char(11) NOT NULL,
+	cod_categoria varchar2(11) NOT NULL,
 	cod_fornecedor varchar2(11) NOT NULL,
-	codigo char(11) PRIMARY KEY,
+	codigo varchar2(11),
 	nome varchar2(15) NOT NULL,
-	preço real NOT NULL,
-	data_de_fabricação date NOT NULL,
-	descrição varchar2(30) NOT NULL,
-	especificação varchar2(15) NOT NULL,
+	preco real NOT NULL,
+	data_de_fabricacao date NOT NULL,
+	descricao varchar2(30) NOT NULL,
+	especificacao varchar2(15) NOT NULL,
 	data_de_validade date NOT NULL,
+	PRIMARY KEY (codigo),
 	CONSTRAINT fk_produto_categoria FOREIGN KEY (cod_categoria) REFERENCES categoria(codigo),
 	CONSTRAINT fk_produto_fornecedor FOREIGN KEY (cod_fornecedor) REFERENCES fornecedor(codigo)
 );
 
 CREATE TABLE foto_produto (
 	foto blob NOT NULL,
-	cod_produto char(11) PRIMARY KEY,
+	cod_produto varchar2(11) PRIMARY KEY,
 	CONSTRAINT fk_foto_produto FOREIGN KEY (cod_produto) REFERENCES produto(codigo)
 );
 
 CREATE TABLE estocado (
-	cod_produto char(11) PRIMARY KEY,
+	cod_produto varchar2(11) PRIMARY KEY,
 	quantidade integer NOT NULL,
 	CONSTRAINT fk_estocado_produto FOREIGN KEY (cod_produto) REFERENCES produto(codigo)
 );
 
 CREATE TABLE avalia (
-	cod_produto char(11) NOT NULL,
+	cod_produto varchar2(11) NOT NULL,
 	id_ordem_compra integer NOT NULL,
 	nota integer NOT NULL,
 	descricao varchar2(30) NOT NULL,
@@ -219,7 +231,7 @@ CREATE TABLE avalia (
 );
 
 CREATE TABLE possui (
-	cod_produto char(11) NOT NULL,
+	cod_produto varchar2(11) NOT NULL,
 	id_ordem_compra integer NOT NULL,
 	quantidade integer NOT NULL,
 	valor real NOT NULL,
@@ -229,10 +241,10 @@ CREATE TABLE possui (
 );
 
 CREATE TABLE tem (
-	cod_produto char(11) NOT NULL,
+	cod_produto varchar2(11) NOT NULL,
 	cod_carrinho varchar2(10) NOT NULL,
 	quantidade integer NOT NULL,
 	PRIMARY KEY (cod_produto, cod_carrinho),
 	CONSTRAINT fk_tem_produto FOREIGN KEY (cod_produto) REFERENCES produto(codigo),
-	CONSTRAINT fk_tem_carrinho FOREIGN KEY (cod_carrinho) REFERENCES carrinho(codigo)
+	CONSTRAINT fk_tem_carrinho FOREIGN KEY (cod_carrinho) REFERENCES carrinho(codigo_cliente)
 );
