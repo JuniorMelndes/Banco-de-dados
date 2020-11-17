@@ -1,0 +1,51 @@
+CREATE TABLE fornecedor (
+	codigo char(11),
+	home_page varchar(max),
+	nome varchar(15),
+	email varchar(20),
+	telefone varchar(11),
+	PRIMARY KEY (codigo)
+);
+
+CREATE TABLE endereco_fornecedor (
+	cep varchar(9),
+	estado char(2),
+	cidade varchar(15),
+	bairro varchar(10),
+	numero varchar(11),
+	rua varchar(15),
+	PRIMARY KEY(codigo_endereco_fornecedor),
+	FOREIGN KEY(codigo_endereco_fornecedor), REFERENCES fornecedor(codigo)
+);
+
+CREATE TABLE centro_de_distribuicao (
+	nome varchar(15),
+	codigo char(11),
+	PRIMARY KEY (codigo)
+);
+
+CREATE TABLE endereco_centro_de_distribuicao (
+	cep varchar(8),
+	estado char(2),
+	cidade varchar(15),
+	bairro varchar(10),
+	numero varchar(11),
+	rua varchar(15),
+	PRIMARY KEY(codigo_centro_de_distribuicao),
+	FOREIGN KEY(codigo_centro_de_distribuicao), REFERENCES centro_de_distribuicao(codigo)
+);
+
+CREATE TABLE categoria (
+	nome varchar(15),
+	codigo char(11),
+	PRIMARY KEY (codigo)
+);
+
+
+
+
+
+
+
+	
+	
